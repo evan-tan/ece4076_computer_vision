@@ -4,7 +4,7 @@ function [result] = colorize_gradients(gradient_orient, directions)
     %   gradient_orient => gradient orientation matrix
     %   directions => cardinal directions matrix
     % Output(s):
-    %   output_img => output image
+    %   result => output image
 
     pink = [255, 0, 127];
     purple = fliplr(pink);
@@ -14,11 +14,32 @@ function [result] = colorize_gradients(gradient_orient, directions)
     yellow = fliplr(cyan);
     orange = [255, 127, 0];
     red = [255, 0, 0];
+    colors = [pink; purple; blue; cyan; green; yellow; orange; red];
 
-    % main loop and shit
-    if max(max(input_img)) > 1
-        output_img = rescale(input_img, 0, 1);
-    else
-        output_img = input_img;
+    lighter_colors = zeros(size(colors));
+    for i = 1:length(colors)
+        % current color
+        color = colors(i, :);
+        for j = 1:length(color)
+            if color(j) < 255
+                color(j) = color(j) + 50;
+            end
+        end
+        lighter_colors(i, :) = color;
+    end
+    colors = vertcat(colors, lighter_colors(2:end, :));
+
+    assert(length(colors) == length(directions))
+
+    [r, c] = size(gradient_orient);
+    n_channels = 3;
+    result = zeros(r, c, n_channels);
+
+    for k = 1:size(gradient_orient, 1)
+        for l = 1:size(gradient_orient, 2)
+            index_array = gradient_orient(k, l) == directions;
+            selected_color = colors(index_array, :);
+            result(k, l, :) = selected_color;
+        end
     end
 end

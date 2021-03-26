@@ -43,6 +43,10 @@ for i = 1:length(images)
 end
 
 %% Task 2: Calculate Image Gradients
+%{
+NOTE: All computation is done here except for Task 5, see comments for
+reference
+%}
 close all;
 
 % sobel kernel for vertical edges
@@ -72,6 +76,7 @@ theta_adj = {};
 % Task 4: define cardinal directions
 directions = linspace(0, 2 * pi * 7/8, 8);
 % consider negative directions for gradient orientation
+% take from index 2 since we want unique values
 directions = horzcat(directions, -directions(2:end));
 
 for i = 1:length(blurred_images)
@@ -105,13 +110,9 @@ for i = 1:length(blurred_images)
             gradient_orient{i}(j, k) = theta_adj{i}(j, k);
         end
     end
-
-    % TODO
-    % to show with colors we need 3 channels
-    %     gradient_orient{i} = rescale(gradient_orient{i}, 0, 255);
-    %     gradient_orient{i}(:,:,1) = gradient_orient{i}(:,:);
-    %     gradient_orient{i}(:,:,2) = gradient_orient{i}(:,:);
-    %     gradient_orient{i}(:,:,3) = gradient_orient{i}(:,:);
+    
+    % colorize gradients
+    gradient_colorized{i} = colorize_gradients(gradient_orient{i}, directions);
 
     % rescale if needed
     img = squish(img);
@@ -167,22 +168,27 @@ for j = 1:length(blurred_images)
     % negative gradients should be shown now that we consider bidirectional
     % cardinal directions
     gradient_orient{j} = squish(gradient_orient{j});
-
+    gradient_colorized{j} = squish(gradient_colorized{j});
+    
+    % subplot(1, 4, 1)
+    % imshow(blurred_images{j})
+    % title("Blurred image " + num2str(j))
     subplot(1, 4, 1)
-    imshow(blurred_images{j})
-    title("Blurred image " + num2str(j))
-    subplot(1, 4, 2)
     imshow(gradient_mag{j})
     title("Gradient magnitude")
-    subplot(1, 4, 3)
+    subplot(1, 4, 2)
     imshow(gradient_orient{j})
     title("Gradient orientation")
-    subplot(1, 4, 4)
+    subplot(1, 4, 3)
     % use built-in function for answer checking
     [gmag, gdir] = imgradient(blurred_images{j});
     imshow(squish(gdir))
     title("gdir (built-in)")
+    subplot(1,4,4)
+    imshow(gradient_colorized{j})
+    title("Gradient orientation (Colorized)")
 end
+
 
 %% Task 5: NMS and Thresholding
 close all;
