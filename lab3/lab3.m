@@ -42,7 +42,7 @@ H_lr = [
 
 pts_r = zeros(size(pts_l));
 for r = 1:size(pts_l, 1)
-    % transpose to match inner dimensions
+    % transpose to match inner dimensions (for matmul)
     tmp = H_lr * pts_l(r, :)';
     pts_r(r, :) = tmp';
 end
@@ -66,7 +66,7 @@ disp(pts_binter * 255)
 
 %% task 4 - image stitching
 
-% rows and cols of left and right images
+% rows (rl/rr) and cols (cl/cr) of left and right images
 [rl, cl] = size(img_l);
 [rr, cr] = size(img_r);
 
@@ -76,44 +76,44 @@ combined(1:rl, 1:cl) = img_l;
 figB = figure; figure(figB);
 imshow(combined)
 
-% get all point indices
-pt_indices = zeros(rl, cl, 2);
+% loop through RHS of combined image
+for row = 1:size(combined, 1)
+    % cols start at 513!
+    for col = 1 + size(img_l, 2):size(combined, 2)
+        % (x,y,z) format
+        pt_r = [col, row, 1];
+        pt_r_2d = convert_3d((H_lr * pt_r')');
 
-for col = 1:cl
-    for row = 1:rl
-        % we place col/row values in indices 1/2 because they are the x/y values
-        pt_indices(row, col, 1) = col;
-        pt_indices(row, col, 2) = row;
+        % drop bad coordinates
+        cond1 = pt_r_2d >= 1;
+        % we need < not <= since we check neighbouring pixels!
+        % make sure x(columns) and y(rows) values fit
+        cond2 = pt_r_2d(:, 1) < 512;
+        cond3 = pt_r_2d(:, 2) < 384;
+        good_row = cond1(:, 1) & cond1(:, 2) & cond2(:) & cond3(:);
+
+        % pixel is valid
+        if good_row == 1
+            combined(row, col) = bilinear_inter(img_r, pt_r_2d);
+        elseif good_row == 0
+            combined(row, col) = 0;
+        end
     end
 end
 
-% make homogenous by adding a column of ones to the RHS of matrix
-pt_indices = reshape(pt_indices, rl * cl, 2);
-pt_indices = horzcat(pt_indices, ones(size(pt_indices, 1), 1));
+figure(figB);
+imshow(combined)
 
-% transform pixel coordinates using Homography
-clear pts_r pts_r_2d;
-pts_r = zeros(size(pt_indices));
-for k = 1:size(pt_indices, 1)
-    tmp_pt = H_lr * pt_indices(k, :)';
-    pts_r(k, :) = tmp_pt';
-end
+%% task 5 - better blending
 
-% convert 3D (XYZ) coordinates to 2D (XY)
-pts_r_2d = convert_3d(pts_r);
+% remove columns with ALL black pixels
+good_cols = find(sum(combined) > 0);
+figC = figure; figure(figC);
+cropped = combined(:,good_cols);
+imshow(cropped)
 
-cond1 = pts_r_2d >= 1;
-% make sure x/y values fit
-% we need < not <= since we check neighbouring pixels
-cond2 = pts_r_2d(:, 1) < 512;
-cond3 = pts_r_2d(:, 2) < 384;
-good_rows = cond1(:, 1) & cond1(:, 2) & cond2(:) & cond3(:);
-% drop any invalid pixel coordinates
-pts_r_2d = pts_r_2d(good_rows, :);
+% adjust brightness - normalize image?
 
-% empty frame
-pts_r_intensities = bilinear_inter(img_r, pts_r_2d);
+% gaussian blur / alpha blending @ seam
 
-% combined(rl+1:end, cl+1:end) = some image
-
-%% task 5 -
+% adjust horizontal location of seam

@@ -7,15 +7,17 @@ function [pts_binter] = bilinear_inter(img, pts_2d)
     % Output(s):
     %   pts_binter => N X 1 intensity values for points
 
-    % ensuring max indices don't exceed image dimensions
-    max_vals = max(pts_2d);
-    xmax = max_vals(1);
-    ymax = max_vals(2);
-
-    % x values correspond to columns in img
-    % y values correspond to rows    in img
-    assert(xmax < size(img, 2))
-    assert(ymax < size(img, 1))
+    
+    % REMOVED ERROR CHECKING, MAKE SURE YOU DO THIS OUTSIDE FUNCTION
+    
+%     % ensuring max indices don't exceed image dimensions
+%     max_vals = max(pts_2d);
+%     xmax = max_vals(1);
+%     ymax = max_vals(2);
+%     % x values correspond to columns in img
+%     % y values correspond to rows    in img
+%     assert(xmax < size(img, 2))
+%     assert(ymax < size(img, 1))
 
     % preallocating
     pts_binter = zeros(size(pts_2d, 1), 1);
