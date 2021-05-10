@@ -1,20 +1,3 @@
-function [output_img] = stereo_reconstruct(pts, fig_obj)
-    % SIFT_SCATTER
-    % Input(s):
-    %   input_img => input image
-    % Output(s):
-    %   output_img => output image
-
-    % main loop and shit
-    if max(max(input_img)) > 1
-        output_img = rescale(input_img, 0, 1);
-    else
-        output_img = input_img;
-    end
-end
-
-
-
 function [match_ids] = match_keypoints(f_vals, f_desc, pair, fig_obj)
     % MATCH_KEYPOINTS   Match keypoints between pairs of images using feature
     %                   descriptors
@@ -27,19 +10,22 @@ function [match_ids] = match_keypoints(f_vals, f_desc, pair, fig_obj)
     %                       to use for triangulation
     %   fig_obj =>  figure to plot on
     % Output(s):
-    %   match_ids => N X 2  pairwise match indices in f_desc that correspond to %                       pair(1) and pair(2)
+    %   match_ids => N X 2  pairwise match indices in f_desc that correspond to                    pair(1) and pair(2)
 
     assert(size(pair, 1) < length(f_desc))
     if nargin < 4
         fig_obj = false;
     end
 
+    % image indices
     imA = pair(1);
     imB = pair(2);
+    
+    % offset columns to plot 
     offset_cols = 640;
-    n_rows = size(f_desc{imA}, 1);
-    n_matches = 0;
+    
     match_ids = [];
+    n_rows = size(f_desc{imA}, 1);
     for ij = 1:n_rows
         vecA = f_vals{imA}(ij, :);
         % compute difference in desscriptor values between imA and imB
@@ -67,14 +53,13 @@ function [match_ids] = match_keypoints(f_vals, f_desc, pair, fig_obj)
                 y = [kpA(2) kpB(2)];
                 hold on
                 figure(fig_obj);
-                line(x, y, 'Color', 'green')
+                line(x, y, 'Color', 'green');
             end
-            n_matches = n_matches + 1;
         else
             % no match found
         end
     end
     hold off
 
-    fprintf("Ratio matching between %d and %d got %d matches\n", imA, imB, n_matches)
+    fprintf("Ratio matching between %d and %d got %d matches\n", imA, imB, size(match_ids,1))
 end
