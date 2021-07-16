@@ -36,7 +36,7 @@ y_gradient = my_conv(img_slice, y_kernel, "sobel", padding);
 
 %% q1 v
 % Harris matrix, M
-[M, block_matrices] = harris_mat(x_gradient, y_gradient);
+[M, block_matrices] = mat_harris(x_gradient, y_gradient);
 
 %% q1 vi
 % get eigenvalues of harris matrix, M

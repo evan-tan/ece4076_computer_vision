@@ -117,7 +117,7 @@ cross_mat = @(mat)[0, -mat(3), mat(2); mat(3), 0, -mat(1); -mat(2), mat(1), 0];
 focal_len = 1;
 baseline = 1;
 clear match_ids match_pair;
-match_pairs = [1 2; 
+match_pairs = [1 2;
             1 3;
             1 4];
 colors = ['r','g','b'];
@@ -135,7 +135,7 @@ for ik = 1:size(match_pairs,1)
     % select images to be compared
     imA = match_pairs(ik,1);
     imB = match_pairs(ik,2);
-    
+
     % perform keypoint matching
     match_indices = match_keypoints(f_vals, f_desc, match_pairs(ik,:));
     % get keypoint xy values
@@ -144,12 +144,12 @@ for ik = 1:size(match_pairs,1)
 
     % store matches for each pair
     match_ids{ik} = match_indices;
-    
+
     % translation matrix
     t = [baseline 0 0]';
     % essential matrix
     E = cross_mat(t) * eye(3);
-    
+
     % difference in horizontal coordinates
     curr_disparity = zeros(size(kpA, 1), 1);
     for jj = 1:size(kpA, 1)
@@ -168,11 +168,11 @@ for ik = 1:size(match_pairs,1)
     pt_f1(:, 1) = kpA(:, 1) .* curr_depth;
     pt_f1(:, 2) = kpA(:, 2) .* curr_depth;
     pt_f1(:, 3) = curr_depth;
-    
+
     hold on
     view(-45,45) % REQUIRED! if not only 2D plot is shown
     scatter3(pt_f1(:, 1), pt_f1(:, 2), pt_f1(:, 3), colors(ik))
-    
+
     % store for usage later
     disparity{ik} = curr_disparity;
     depth{ik} = curr_depth;
@@ -193,7 +193,7 @@ legend(legend_str(1,:), legend_str(2,:), legend_str(3,:))
 grid on
 hold off
 
-%{ 
+%{
 QUANTIFYING RESULTS:
 Camera is shifted parallel from im1 to im4disparity{3} (ascending order), however, we
 are assuming the same baseline. Thus when we calculate depth, disparity
@@ -219,6 +219,92 @@ hold off
 
 disparity_14 = disparity{3};
 baseline_13 = est_baselines(2);
+kpA = f_desc{imA}(match_indices(:, 1), 1:2);
+kpB = f_desc{imB}(match_indices(:, 2), 1:2);
+
+% store matches for each pair
+match_ids{ik} = match_indices;
+
+% translation matrix
+t = [baseline 0 0]';
+% essential matrix
+E = cross_mat(t) * eye(3);
+
+% difference in horizontal coordinates
+curr_disparity = zeros(size(kpA, 1), 1);
+for jj = 1:size(kpA, 1)
+    pt1 = kpA(jj, :);   % point from image 1
+    pt2 = kpB(jj, :);   % point from image 2
+    % l = E * pt1';     % epipolar line
+    curr_disparity(jj) = abs(pt1(1) - pt2(1));
+end
+fprintf("Mean disparity: %.2f pixels\n", mean(curr_disparity))
+% depth of keypoints
+curr_depth = focal_len * baseline ./ curr_disparity;
+% estimate baseline
+est_baselines(ik) = mean(curr_disparity) * scale_units;
+% point coordinates in Frame 1
+pt_f1 = zeros(size(kpA));
+pt_f1(:, 1) = kpA(:, 1) .* curr_depth;
+pt_f1(:, 2) = kpA(:, 2) .* curr_depth;
+pt_f1(:, 3) = curr_depth;
+
+hold on
+view(-45,45) % REQUIRED! if not only 2D plot is shown
+scatter3(pt_f1(:, 1), pt_f1(:, 2), pt_f1(:, 3), colors(ik))
+
+% store for usage later
+disparity{ik} = curr_disparity;
+depth{ik} = curr_depth;
+coords_f1{ik} = pt_f1;
+end
+
+title('Scatter plot for points in Frame 1')
+xlabel('uz')
+ylabel('vz')
+zlabel('z')
+legend_str = [];
+for jk=1:length(match_pairs)
+a = strcat('im',num2str(match_pairs(jk,1)));all_coords_f1 = cell(1, length(match_pairs));
+b = strcat(' and im',num2str(match_pairs(jk,2)));
+legend_str = [legend_str; strcat(a,b)];
+end
+legend(legend_str(1,:), legend_str(2,:), legend_str(3,:))
+grid on
+hold off
+
+%{
+QUANTIFYING RESULTS:
+Camera is shifted parallel from im1 to im4disparity{3} (ascending order), however, we
+are assuming the same baseline. Thus when we calculate depth, disparity
+changes but the baseline doesn't resulting in lower values when we shift
+from 1&2 -> 1&3 -> 1&4
+%}
+
+
+%% task 7 - reprojection of 3D points
+
+figD = figure;
+hold on
+imshow(im3)
+title("im3.jpg with good keypoints drawn")
+hold off
+
+match_ids = match_keypoints(f_vals, f_desc, [1 3]);
+figure(figD)
+hold on
+plot(f_desc{3}(match_ids(:,2), 1), f_desc{3}(match_ids(:,2), 2), 'rx', ...
+            'MarkerSize', 8, 'LineWidth', 0.1);
+hold off
+
+disparity_14 = disparity{3};
+baseline_13 = est_baselines(2);
+baseline_14 = est_baselines(3);
+baseline_ratio = baseline_13 / baseline_14;
+% this is in world frame, so [uz,vz,z]
+new_coords = coords_f1{3} .* baseline_ratio;
+% translate x coordinates accordingly
+translate_pct = abs(baseline_14 + baseline_13)*scale
 baseline_14 = est_baselines(3);
 baseline_ratio = baseline_13 / baseline_14;
 % this is in world frame, so [uz,vz,z]

@@ -36,7 +36,7 @@ gaussian_kernel = [2, 4, 5, 4, 2;
 
 for i = 1:length(images)
     % perform gaussian blur (convolution operation)
-    blurred_images{i} = my_conv(images{i}, gaussian_kernel, "gaussian", 2);
+    blurred_images{i} = my_conv(images{i}, gaussian_kernel, 2);
     figure
     montage({images{i}, blurred_images{i}})
     title("Gaussin blur (RHS) of Image " + num2str(i) + "(LHS)")
@@ -84,8 +84,8 @@ for i = 1:length(blurred_images)
     img = blurred_images{i};
 
     % perform convolution with sobel filter
-    G_x = my_conv(img, sobel_x, "sobel", 1);
-    G_y = my_conv(img, sobel_y, "sobel", 1);
+    G_x = my_conv(img, sobel_x, 1);
+    G_y = my_conv(img, sobel_y, 1);
 
     % =================================
     % ONLY USE THIS FOR ANSWER CHECKING

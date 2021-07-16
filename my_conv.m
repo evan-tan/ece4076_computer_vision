@@ -1,17 +1,14 @@
-function [processed_img] = my_conv(img, kernel, mode, padding)
+function [processed_img] = my_conv(img, kernel, padding)
     % MY_CONV Implement convolution operation from scratch
     % Input(s):
     %   img     => img to apply convolution to
     %   kernel  => kernel weights
-    %   mode    => e.g. gaussian, sobel
+    %   padding => padding to apply to image, defaults to 0
     % Output(s):
     %   processed_img => output img after convolution
 
-    % set default value of mode variable
+    % set default value of padding variable
     if nargin == 2
-        mode = "";
-        padding = 0;
-    elseif nargin == 3
         padding = 0;
     end
 
@@ -29,10 +26,11 @@ function [processed_img] = my_conv(img, kernel, mode, padding)
     vert_offset = size(kernel, 1) - 1;
     horz_offset = size(kernel, 2) - 1;
 
-    if mode == "gaussian"
-        scale = 1 / sum(kernel, 'all');
-    elseif mode == "sobel"
+    % check if we need to scale to normalize values
+    if sum(kernel, 'all') == 1
         scale = 1;
+    else
+        scale = 1 / sum(kernel, 'all');
     end
 
     % preallocate and iterate over rows, size format (rows, cols)

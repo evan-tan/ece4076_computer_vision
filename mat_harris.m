@@ -1,5 +1,5 @@
-function [M, block_matrices] = harris_mat(x_grad, y_grad)
-    % HARRIS_MAT Create Harris matrix using matrices of x and y gradients
+function [M, block_matrices] = mat_harris(x_grad, y_grad)
+    % MAT_HARRIS Create Harris matrix using matrices of x and y gradients
     % Input(s):
     %   x_grad  => matrix for x gradients
     %   y_grad => matrix for y gradients
